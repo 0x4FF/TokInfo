@@ -81,8 +81,8 @@ class Tokinfo:
 account = Tokinfo(token)
 
 # Example
-def get_all():
-          print(account.get_user_info(), 
+
+print(account.get_user_info(), 
                 account.get_user_dms(),
                 account.get_user_friends(),
                 account.get_user_connections(),
@@ -90,4 +90,3 @@ def get_all():
                 account.get_notifs(),
                 account.get_servers()
                )
-get_all()
