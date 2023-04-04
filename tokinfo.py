@@ -2,9 +2,7 @@ from requests import get
 
 from argparse import ArgumentParser
 
-from os import (
-      getenv,
-)
+from os import getenv
 
 from json import (
       dumps,
@@ -14,8 +12,7 @@ from json import (
 # Configurating the token
 try:
     with open("config.json", "r") as config_file:
-        config = load(config_file)
-        token = config.get("Token")
+        token = load(config_file["token"])
         if not token:
             token = getenv("Token")
 except FileNotFoundError:
@@ -82,11 +79,11 @@ class Tokinfo:
           return dumps(get_account_servers, indent=4)
     
   def get_last_10_dm_messages(self):
-          dm_channels = get('https://discord.com/api/v9/users/@me/channels', headers=headers).json()
+          dm_channels = get("https://discord.com/api/v9/users/@me/channels", headers=headers).json()
     
-          result = [(channel['id'], 
-                   [message['content'] for message in 
-                   reversed(get(f'https://discord.com/api/v9/channels/{channel["id"]}/messages?limit=10',
+          result = [(channel["id"], 
+                   [message["content"] for message in 
+                   reversed(get(f"https://discord.com/api/v9/channels/{channel['id']}/messages?limit=10",
                    headers=headers).json())]) for channel in dm_channels if channel['type'] == 1]
     
           if not result:
