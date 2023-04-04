@@ -85,24 +85,27 @@ class Tokinfo:
   def get_notifs(self):
           get_notifs = get("https://discord.com/api/v9/users/@me/notification-center/items?limit=100", 
                            headers=headers).json()
+    
           return dumps(get_notifs, indent=4)
     
   def get_servers(self):
           get_account_servers = get("https://discord.com/api/users/@me/guilds", 
                                     headers=headers).json()
+    
           return dumps(get_account_servers, indent=4)
     
   def get_last_10_dm_messages(self):
-    dm_channels = get('https://discord.com/api/v9/users/@me/channels', 
+          dm_channels = get('https://discord.com/api/v9/users/@me/channels', 
                       headers=headers).json()
     
-    result = [(channel['id'], 
+          result = [(channel['id'], 
                [message['content'] for message in reversed(get(f'https://discord.com/api/v9/channels/{channel["id"]}/messages?limit=10',
                 headers=headers).json())]) for channel in dm_channels if channel['type'] == 1]
     
-    if not result:
-        print("No DM channels with messages found")
-    return dumps(result, indent=4)
+          if not result:
+            print("No DM channels with messages found")
+            
+          return dumps(result, indent=4)
 
 # Create an instant to use
 account = Tokinfo(token)
