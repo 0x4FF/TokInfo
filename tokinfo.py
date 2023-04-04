@@ -82,7 +82,9 @@ account = Tokinfo(token)
 
 # Example
 def get_all():
-          print(account.get_user_info(), account.get_user_dms(),account.get_user_friends(),
+          print(account.get_user_info(), 
+                account.get_user_dms(),
+                account.get_user_friends(),
                 account.get_user_connections(),
                 account.get_payment_info(),
                 account.get_notifs(),
