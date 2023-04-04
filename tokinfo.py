@@ -92,11 +92,11 @@ account = Tokinfo(token)
 # Example
 
 print(
-      account.get_user_info(), 
-      account.get_user_dms(),
-      account.get_user_friends(),
-      account.get_user_connections(),
-      account.get_payment_info(),
-      account.get_notifs(),
-      account.get_servers()
+account.get_user_info(), 
+account.get_user_dms(),
+account.get_user_friends(),
+account.get_user_connections(),
+account.get_payment_info(),
+account.get_notifs(),
+account.get_servers()
 )
