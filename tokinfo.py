@@ -15,10 +15,10 @@ try:
         if not token:
             token = getenv("Token")
 except FileNotFoundError:
-    print(f"Error: config.json not found, loading from env")
+    print("Error: config.json not found, loading from env")
     token = getenv("Token")
 
-headers = {f"Authorization": f"{token}"}
+headers = {"Authorization": f"{token}"}
                 
 
 class Tokinfo:
