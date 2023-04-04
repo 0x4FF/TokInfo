@@ -77,11 +77,13 @@ class Tokinfo:
   def get_notifs(self):
           get_notifs = get("https://discord.com/api/v9/users/@me/notification-center/items?limit=100", 
                            headers=headers).json()
+            
           return dumps(get_notifs, indent=4)
     
   def get_servers(self):
           get_account_servers = get("https://discord.com/api/users/@me/guilds", 
                                     headers=headers).json()
+            
           return dumps(get_account_servers, indent=4)
  
     
