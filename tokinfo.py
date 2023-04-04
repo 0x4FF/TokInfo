@@ -91,7 +91,8 @@ account = Tokinfo(token)
 
 # Example
 
-print(account.get_user_info(), 
+print(
+      account.get_user_info(), 
       account.get_user_dms(),
       account.get_user_friends(),
       account.get_user_connections(),
