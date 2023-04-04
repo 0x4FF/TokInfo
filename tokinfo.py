@@ -94,25 +94,12 @@ class Tokinfo:
     
   def get_last_10_dm_messages(self):
     dm_channels = get('https://discord.com/api/v9/users/@me/channels', 
-                      headers=headers)
-    result = []
-
-    for channel in dm_channels.json():
-        channel_id = channel['id']
-        messages = get(f'https://discord.com/api/v9/channels/{channel_id}/messages?limit=10', 
-                       headers=headers)
-        if messages.status_code != 200:
-            print(f"Error getting messages from DM channel {channel_id}: {messages.content}")
-            continue
-        print(f"Last 10 messages from DM channel {channel_id}:")
-        messages_list = []
-        for message in reversed(messages.json()):
-            messages_list.append(message['content'])
-        if not messages_list:
-            print(f"No messages in DM channel {channel_id}")
-        else:
-            result.append((channel_id, messages_list))
-
+                      headers=headers).json()
+    
+    result = [(channel['id'], 
+               [message['content'] for message in reversed(get(f'https://discord.com/api/v9/channels/{channel["id"]}/messages?limit=10',
+                headers=headers).json())]) for channel in dm_channels if channel['type'] == 1]
+    
     if not result:
         print("No DM channels with messages found")
     return dumps(result, indent=4)
