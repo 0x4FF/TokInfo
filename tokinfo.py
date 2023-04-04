@@ -1,6 +1,10 @@
 from requests import get
 
-from os import getenv
+from argparse import ArgumentParser
+
+from os import (
+      getenv,
+)
 
 from json import (
       dumps,
@@ -59,12 +63,16 @@ class Tokinfo:
   def get_payment_info(self):
           payments_body = get("https://discord.com/api/v9/users/@me/billing/subscriptions", 
                               headers=headers).json()
+    
           billing_body = get("https://discord.com/api/v9/users/@me/billing/payment-sources", 
                              headers=headers).json()
+    
           gifts_body = get("https://discord.com/api/v9/users/@me/entitlements/gifts", 
                            headers=headers).json()
+    
           likelihood = get("https://discord.com/api/v9/users/@me/billing/premium-likelihood", 
                            headers=headers).json()
+    
           payment_dict = {
                "subscriptions": payments_body,
                "payment_sources": billing_body,
@@ -77,28 +85,60 @@ class Tokinfo:
   def get_notifs(self):
           get_notifs = get("https://discord.com/api/v9/users/@me/notification-center/items?limit=100", 
                            headers=headers).json()
-            
           return dumps(get_notifs, indent=4)
     
   def get_servers(self):
           get_account_servers = get("https://discord.com/api/users/@me/guilds", 
                                     headers=headers).json()
-            
           return dumps(get_account_servers, indent=4)
- 
     
-  
+  def get_last_10_dm_messages(self):
+    dm_channels = get('https://discord.com/api/v9/users/@me/channels', 
+                      headers=headers)
+    result = []
+
+    for channel in dm_channels.json():
+        channel_id = channel['id']
+        messages = get(f'https://discord.com/api/v9/channels/{channel_id}/messages?limit=10', 
+                       headers=headers)
+        if messages.status_code != 200:
+            print(f"Error getting messages from DM channel {channel_id}: {messages.content}")
+            continue
+        print(f"Last 10 messages from DM channel {channel_id}:")
+        messages_list = []
+        for message in reversed(messages.json()):
+            messages_list.append(message['content'])
+        if not messages_list:
+            print(f"No messages in DM channel {channel_id}")
+        else:
+            result.append((channel_id, messages_list))
+
+    if not result:
+        print("No DM channels with messages found")
+    return dumps(result, indent=4)
+
 # Create an instant to use
 account = Tokinfo(token)
 
 # Example
 
-print(
-      account.get_user_info(), 
-      account.get_user_dms(),
-      account.get_user_friends(),
-      account.get_user_connections(),
-      account.get_payment_info(),
-      account.get_notifs(),
-      account.get_servers()
-      )
+arguments = {
+    'info': account.get_user_info,
+    'dms': account.get_user_dms,
+    'friends': account.get_user_friends,
+    'connections': account.get_user_connections,
+    'payment': account.get_payment_info,
+    'notifs': account.get_notifs,
+    'servers': account.get_servers,
+    'recent_dms': account.get_last_10_dm_messages
+}
+
+parser = ArgumentParser(description='Get information from the user account')
+for arg in arguments:
+    parser.add_argument(f'--{arg}', action='store_true', help=f'Get {arg}')
+
+args = parser.parse_args()
+
+for arg, function in arguments.items():
+    if getattr(args, arg):
+        print(function())
