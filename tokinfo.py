@@ -1,128 +1,95 @@
-from requests import get
-from argparse import ArgumentParser
-from os import getenv
-
-from json import (
-      dumps,
-      load,
-)
-
-
-try:
-    with open("config.json", "r") as config_file:
-        token = load(config_file["token"])
-        if not token:
-            token = getenv("Token")
-except FileNotFoundError:
-    print("Error: config.json not found, loading from env") 
-    token = getenv("Token")
-    print(token)
-
-headers = {"Authorization": f"{token}"}
-                
+import requests
+import argparse
+import os
+import json
 
 class Tokinfo:
-  
-  def __init__(self, token):
-    self.token = token
+    def __init__(self, token):
+        self.token = token
+        self.headers = {"Authorization": self.token}
 
-  def get_user_info(self):
-          user_body = get("https://discord.com/api/v9/users/@me", 
-                                                                        headers=headers).json()
-          bio_body = get(f"https://discord.com/api/v9/users/{user_body['id']}/profile?with_mutual_guilds=false&with_mutual_friends_count=false", 
-                                                                        headers=headers).json()['user_profile']['bio']
-          user_dict = {
-                  "account": user_body,
-                  "bio": bio_body
-          }
- 
-          return dumps(user_dict, indent=4)
-    
-  def get_user_dms(self):
-          dms_body = get("https://discord.com/api/v9/users/@me/channels", 
-                                                                        headers=headers).json()
-    
-          return dumps(dms_body, indent=4)
-    
-  def get_user_friends(self):
-          friend_body = get("https://discord.com/api/v9/users/@me/relationships",
-                                                                        headers=headers).json()
-    
-          return dumps(friend_body, indent=4)
-    
-  def get_user_connections(self):
-          connections_body = get("https://discord.com/api/v9/users/@me/connections", 
-                                                                        headers=headers).json()
-    
-          return dumps(connections_body, indent=4)
-    
-  def get_payment_info(self):
-          payments_body = get("https://discord.com/api/v9/users/@me/billing/subscriptions",
-                                                                        headers=headers).json()
-          billing_body = get("https://discord.com/api/v9/users/@me/billing/payment-sources", 
-                                                                        headers=headers).json()
-          gifts_body = get("https://discord.com/api/v9/users/@me/entitlements/gifts", 
-                                                                        headers=headers).json()
-          likelihood = get("https://discord.com/api/v9/users/@me/billing/premium-likelihood", 
-                                                                        headers=headers).json()
-    
-          payment_dict = {
-               "subscriptions": payments_body,
-               "payment_sources": billing_body,
-               "gifts": gifts_body,
-               "likelihood": likelihood
-          }
-    
-          return dumps(payment_dict, indent=4)
-    
-  def get_notifs(self):
-          get_notifs = get("https://discord.com/api/v9/users/@me/notification-center/items?limit=100", 
-                                                                        headers=headers).json()
-    
-          return dumps(get_notifs, indent=4)
-    
-  def get_servers(self):
-          get_account_servers = get("https://discord.com/api/users/@me/guilds", 
-                                                                        headers=headers).json()
-    
-          return dumps(get_account_servers, indent=4)
-    
-  def get_last_10_dm_messages(self):
-          dm_channels = get("https://discord.com/api/v9/users/@me/channels", 
-                                                                        headers=headers).json()
-    
-          result = [(channel["id"],
-                   [message["content"] for message in 
-                   reversed(get(f"https://discord.com/api/v9/channels/{channel['id']}/messages?limit=10",
-                   headers=headers).json())]) for channel in dm_channels if channel['type'] == 1]
-    
-          if not result:
-            print("No DM channels with messages found")
-            
-          return dumps(result, indent=4)
+    def get_user_info(self):
+        user_response = requests.get("https://discord.com/api/v9/users/@me", headers=self.headers)
+        user_body = user_response.json()
+        if user_response.status_code != 200:
+            print("Error retrieving user information")
+            return
 
-# Create an instant to use
-account = Tokinfo(token)
+        bio_response = requests.get(
+            f"https://discord.com/api/v9/users/{user_body['id']}/profile?with_mutual_guilds=false&with_mutual_friends_count=false",
+            headers=self.headers
+        )
+        bio_body = bio_response.json()['user_profile']['bio']
+        if bio_response.status_code != 200:
+            print("Error retrieving user bio")
+            return
 
-# Example
+        user_dict = {
+            "account": user_body,
+            "bio": bio_body
+        }
+        return json.dumps(user_dict, indent=4)
 
-arguments = {
-    'info': account.get_user_info,
-    'dms': account.get_user_dms,
-    'friends': account.get_user_friends,
-    'connections': account.get_user_connections,
-    'payment': account.get_payment_info,
-    'notifs': account.get_notifs,
-    'servers': account.get_servers,
-    'recent_dms': account.get_last_10_dm_messages
-}
+    def get_user_dms(self):
+        dms_response = requests.get("https://discord.com/api/v9/users/@me/channels", headers=self.headers)
+        dms_body = dms_response.json()
+        if dms_response.status_code != 200:
+            print("Error retrieving user DMs")
+            return
 
-parser = ArgumentParser(description='Get information from the user account')
-for arg in arguments:
-    parser.add_argument(f'--{arg}', action='store_true', help=f'Get {arg}')
+        return json.dumps(dms_body, indent=4)
 
-args = parser.parse_args()
+    def get_user_friends(self):
+        friend_response = requests.get("https://discord.com/api/v9/users/@me/relationships", headers=self.headers)
+        friend_body = friend_response.json()
+        if friend_response.status_code != 200:
+            print("Error retrieving user friends")
+            return
 
-for arg, function in arguments.items():
-    if getattr(args, arg):
-        print(function())
+        return json.dumps(friend_body, indent=4)
+
+    def get_user_connections(self):
+        connections_response = requests.get("https://discord.com/api/v9/users/@me/connections", headers=self.headers)
+        connections_body = connections_response.json()
+        if connections_response.status_code != 200:
+            print("Error retrieving user connections")
+            return
+
+        return json.dumps(connections_body, indent=4)
+
+    def get_payment_info(self):
+        payments_response = requests.get("https://discord.com/api/v9/users/@me/billing/subscriptions", headers=self.headers)
+        payments_body = payments_response.json()
+        if payments_response.status_code != 200:
+            print("Error retrieving user payments")
+            return
+
+        billing_response = requests.get("https://discord.com/api/v9/users/@me/billing/payment-sources", headers=self.headers)
+        billing_body = billing_response.json()
+        if billing_response.status_code != 200:
+            print("Error retrieving user billing info")
+            return
+
+        gifts_response = requests.get("https://discord.com/api/v9/users/@me/entitlements/gifts", headers=self.headers)
+        gifts_body = gifts_response.json()
+        if gifts_response.status_code != 200:
+            print("Error retrieving user gifts")
+            return
+
+        likelihood_response = requests.get("https://discord.com/api/v9/users/@me/billing/premium-likelihood", headers=self.headers)
+        likelihood = likelihood_response.json()
+        if likelihood_response.status_code != 200:
+            print("Error retrieving user premium likelihood")
+            return
+
+        payment_dict = {
+            "subscriptions": payments_body,
+            "payment_sources": billing_body,
+            "gifts": gifts_body,
+            "likelihood": likelihood
+        }
+        return json.dumps(payment_dict, indent=4)
+
+    def get_notifs(self):
+        notifs_response = requests.get("https://discord.com/api/v9/users/@me/notification-center/items?limit=100", headers
+
