@@ -29,8 +29,9 @@ arguments = {
     'notifs': account.get_notifs,
     'servers': account.get_servers,
     'recent_dms': account.get_last_10_dm_messages
-}```
-
+}
+```
+-
 ```py
 python main.py --info
 ---------------------
